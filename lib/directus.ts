@@ -1,12 +1,6 @@
 /* eslint-disable prettier/prettier */
-import {
-  createDirectus,
-  staticToken,
-  rest,
-  readItems,
-  schemaSnapshot,
-} from "@directus/sdk";
-import { IEmployees } from "@/app/types";
+import { createDirectus, staticToken, rest, readItems } from "@directus/sdk";
+
 //should be in env
 const apiClient = "YQRwVAFUn-LlC_IOPoOkpVLeH75QBlyI"
   ? createDirectus("https://data.zanda.info")
@@ -22,8 +16,6 @@ export async function getEmployees() {
         fields: ["id", "Employee_Username", "employee_pin", "Clock_Status"],
       })
     );
-    const result = await apiClient?.request(schemaSnapshot());
-    console.log(result?.collections);
 
     return data;
   } catch (error) {

@@ -5,14 +5,16 @@ import { IEmployees } from "@/app/types"
 
 export default async function Home() {
 
-  const employees = await getEmployees();
-  // console.log(employees);
+  const data: any = await getEmployees();
+  const employees: IEmployees[] = data.map((employee: IEmployees) => {
+    return employee
+  })
 
 
   return (
     <main>
 
-      {/* <TimeForm data={employees} /> */}
+      <TimeForm data={employees} />
 
     </main>
   );
