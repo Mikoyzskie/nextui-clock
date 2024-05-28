@@ -42,14 +42,14 @@ export default function RootLayout({
         )}
       >
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
-          <div className="relative flex flex-col h-screen">
+          <div className="relative flex flex-col h-screen items-center justify-center">
             {/* <Navbar /> */}
             <Image
               alt="Background Image"
               className="rounded-none object-cover w-screen h-screen glass"
               src="/background.jpg"
             />
-            <main className="container mx-auto w-fit pt-16 px-6 flex-grow absolute inset-0 z-10 ">
+            <main className="container flex flex-col h-full mx-auto items-center justify-center w-fit px-6 absolute inset-0 z-10 ">
               {children}
             </main>
           </div>
