@@ -26,7 +26,8 @@ const initialState: IInitial = {
         username: "",
         pin: "",
         hash: "",
-        ipaddress: ""
+        ipaddress: "",
+        localTime: ""
     },
     error: "",
 };
@@ -119,6 +120,9 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
     //Get local time to convert
     const now = new Date();
 
+    console.log(now.toISOString());
+
+
     return (
         <Card className="flex flex-col items-center justify-center gap-4 p-10">
             <CardHeader className="flex flex-col gap-3 w-full max-w-sm text-center items-center justify-center p-0">
@@ -177,6 +181,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                     <input defaultValue={ipAddress} id="ipaddress" name="ipaddress" type="hidden" />
                     <input defaultValue={hash} id="hash" name="hash" type="hidden" />
                     <input defaultValue={userid} id="userid" name="userid" type="hidden" />
+                    <input defaultValue={now.toISOString()} id="localTime" name="localTime" type="hidden" />
                     <Link className="text-xs" color="primary" href="/">
                         Reset Password
                     </Link>

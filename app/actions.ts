@@ -30,6 +30,7 @@ export async function Attendance(
     pin: z.string().min(1),
     hash: z.string().min(1),
     ipaddress: z.string().min(1),
+    localTime: z.string().min(1),
   });
   const parse = schema.safeParse({
     userid: formData.get("userid"),
@@ -37,6 +38,7 @@ export async function Attendance(
     pin: formData.get("pin"),
     hash: formData.get("hash"),
     ipaddress: formData.get("ipaddress"),
+    localTime: formData.get("localTime"),
   });
 
   if (!parse.success) {
@@ -51,7 +53,7 @@ export async function Attendance(
     pin,
     hash,
     ipaddress,
-    // localTime,
+    localTime,
     // timezoneClient,
     // timezoneOffset,
   } = data;
@@ -62,7 +64,7 @@ export async function Attendance(
     pin,
     hash,
     ipaddress,
-    // localTime,
+    localTime,
     // timezoneClient,
     // timezoneOffset,
   };
@@ -88,11 +90,21 @@ export async function Attendance(
 
     if (checkAttendance && checkAttendance.length > 0) {
       if (checkAttendance[0].clock_out_utc === null) {
-        const test = new Date();
-        const luxonTest = DateTime.fromJSDate(test, {
+        const jsDate = new Date(localTime);
+        const luxonInputDatetime = DateTime.fromJSDate(jsDate, {
           zone: checkAttendance.local_device_timezone,
         });
-        console.log(luxonTest.day);
+        const currentTimeIn = new Date(checkAttendance[0].clock_in_utc);
+        const luxonCurrentDatetime = DateTime.fromJSDate(currentTimeIn, {
+          zone: checkAttendance.local_device_timezone,
+        });
+
+        if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
+          console.log("log me out");
+        } else {
+          console.log("forgot to log out yesterday");
+        }
+      } else {
       }
     }
     revalidatePath("/");

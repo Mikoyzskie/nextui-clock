@@ -27,6 +27,7 @@ export interface IInitial {
     pin: string;
     hash: string;
     ipaddress: string;
+    localTime: string;
   };
   error: string;
 }
