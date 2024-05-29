@@ -34,7 +34,7 @@ const initialState: IInitial = {
     reset: false,
 };
 
-function SubmitButton({ status }: { status: string }) {
+function SubmitButton({ status }: { status: boolean | undefined }) {
     const { pending } = useFormStatus();
 
     return (
@@ -50,7 +50,7 @@ function SubmitButton({ status }: { status: string }) {
             isDisabled={pending}
             type="submit"
         >
-            {pending ? "Submiting..." : status}
+            {pending ? "Submiting..." : (status === undefined ? "Time In / Time Out" : (status ? "Timeout" : "Timein"))}
         </Button>
     );
 }
@@ -58,11 +58,13 @@ function SubmitButton({ status }: { status: string }) {
 
 
 export default function TimeForm({ data }: { data: IEmployees[] }) {
-    const [isAvailable, setIsAvailable] = useState(false);
-    const [isLogged, setIsLogged] = useState(false);
-    const [timeIn, setTimeIn] = useState("Time in / Time out");
-    const [isVisible, setIsVisible] = useState(false);
+
     const [state, formAction] = useFormState(Attendance, initialState)
+
+    const [isAvailable, setIsAvailable] = useState(false);
+    const [isLogged, setIsLogged] = useState<boolean | undefined>();
+    const [isVisible, setIsVisible] = useState(false);
+
     const [ipAddress, setIpAddress] = useState('');
     const formRef = useRef<HTMLFormElement>(null)
 
@@ -78,6 +80,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
         formRef.current?.reset()
         state.error = ""
         setIsAvailable(false)
+        setIsLogged(false)
     }
 
 
@@ -85,44 +88,45 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
     const toggleVisibility = () => setIsVisible(!isVisible);
 
     //Check if user exists
-    function handleUsernameChange(event: any) {
+    const handleUsernameChange = (event: any) => {
         const userInput = event.target
         const userAvailable = data.find((x) => x.Employee_Username === userInput.value)
+
+        if (userInput.value === '') {
+            setIsLogged(undefined)
+        }
 
         if (userAvailable) {
             setIsAvailable(true)
             setIsLogged(userAvailable.Clock_Status)
-            if (userAvailable.Clock_Status) {
-                setTimeIn("Time out")
-            } else {
-                setTimeIn("Time in")
-            }
-
         } else {
             setIsAvailable(false)
         }
     }
 
     //Get user ip address
-    useEffect(() => {
-        const fetchIpAddress = async () => {
-            try {
-                const response = await fetch('https://api.ipify.org/?format=json');
 
-                if (response.ok) {
-                    const data = await response.json();
+    const fetchIpAddress = async () => {
+        try {
+            const response = await fetch('https://api.ipify.org/?format=json');
 
-                    setIpAddress(data.ip);
-                } else {
-                    throw new Error('Failed to fetch IP address');
-                }
-            } catch (error) {
-                throw new Error(`Error fetching IP address: ${error}`)
+            if (response.ok) {
+                const data = await response.json();
+
+                setIpAddress(data.ip);
+            } else {
+                throw new Error('Failed to fetch IP address');
             }
-        };
+        } catch (error) {
+            throw new Error(`Error fetching IP address: ${error}`)
+        }
+    };
 
-        fetchIpAddress();
-    }, []);
+    fetchIpAddress();
+
+
+    console.log(ipAddress);
+
 
     const timezoneOffset = dateTime.toLocaleDateString(undefined, { day: '2-digit', timeZoneName: 'short' }).substring(4)
 
@@ -194,7 +198,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                     </Link>
                     {/* <Divider className="w-1/2" /> */}
                 </CardBody>
-                <SubmitButton status={timeIn} />
+                <SubmitButton status={isLogged} />
             </form>
         </Card>
     );
