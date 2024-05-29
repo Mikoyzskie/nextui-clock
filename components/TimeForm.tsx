@@ -9,7 +9,7 @@ import { Image } from "@nextui-org/image";
 import { Card, CardHeader, CardBody } from "@nextui-org/card";
 import { Button } from "@nextui-org/button";
 import dynamic from 'next/dynamic';
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { DateTime } from "luxon";
 
@@ -55,83 +55,64 @@ function SubmitButton({ status }: { status: boolean | undefined }) {
     );
 }
 
-
-
 export default function TimeForm({ data }: { data: IEmployees[] }) {
-
     const [state, formAction] = useFormState(Attendance, initialState)
-
     const [isAvailable, setIsAvailable] = useState(false);
     const [isLogged, setIsLogged] = useState<boolean | undefined>();
     const [isVisible, setIsVisible] = useState(false);
-
     const [ipAddress, setIpAddress] = useState('');
     const formRef = useRef<HTMLFormElement>(null)
-
 
     const dateTime = new Date()
     const luxonDateTime = DateTime.now()
 
-    // console.log(data);
     if (state.error) {
-        console.log(state?.error);
-    }
-    if (state.reset) {
-        formRef.current?.reset()
-        state.error = ""
-        setIsAvailable(false)
-        setIsLogged(false)
+        console.log(state.error);
+
     }
 
+    // Fetch IP address once when component mounts
+    useEffect(() => {
+        const fetchIpAddress = async () => {
+            try {
+                const response = await fetch('https://api.ipify.org/?format=json');
 
-    //Password visibility
-    const toggleVisibility = () => setIsVisible(!isVisible);
+                if (response.ok) {
+                    const data = await response.json();
 
-    //Check if user exists
-    const handleUsernameChange = (event: any) => {
-        const userInput = event.target
-        const userAvailable = data.find((x) => x.Employee_Username === userInput.value)
-
-        if (userInput.value === '') {
-            setIsLogged(undefined)
-        }
-
-        if (userAvailable) {
-            setIsAvailable(true)
-            setIsLogged(userAvailable.Clock_Status)
-        } else {
-            setIsAvailable(false)
-        }
-    }
-
-    //Get user ip address
-
-    const fetchIpAddress = async () => {
-        try {
-            const response = await fetch('https://api.ipify.org/?format=json');
-
-            if (response.ok) {
-                const data = await response.json();
-
-                setIpAddress(data.ip);
-            } else {
-                throw new Error('Failed to fetch IP address');
+                    setIpAddress(data.ip);
+                } else {
+                    throw new Error('Failed to fetch IP address');
+                }
+            } catch (error) {
+                console.error(`Error fetching IP address: ${error}`);
             }
-        } catch (error) {
-            throw new Error(`Error fetching IP address: ${error}`)
+        };
+
+        fetchIpAddress();
+    }, []);
+
+    // Reset form state if needed
+    useEffect(() => {
+        if (state.reset) {
+            formRef.current?.reset();
+            state.error = "";
+            setIsAvailable(false);
+            setIsLogged(false);
         }
-    };
+    }, [state.reset]);
 
-    fetchIpAddress();
+    const toggleVisibility = useCallback(() => setIsVisible(prev => !prev), []);
 
+    const handleUsernameChange = useCallback((event: any) => {
+        const userInput = event.target.value;
+        const userAvailable = data.find((x) => x.Employee_Username === userInput);
 
-    console.log(ipAddress);
+        setIsLogged(userInput === '' ? undefined : userAvailable?.Clock_Status);
+        setIsAvailable(!!userAvailable);
+    }, [data]);
 
-
-    const timezoneOffset = dateTime.toLocaleDateString(undefined, { day: '2-digit', timeZoneName: 'short' }).substring(4)
-
-    // console.log(now.toISOString());
-    // console.log(luxonNow.zoneName);
+    const timezoneOffset = dateTime.toLocaleDateString(undefined, { day: '2-digit', timeZoneName: 'short' }).substring(4);
 
     return (
         <Card className="flex flex-col items-center justify-center gap-4 p-10">
@@ -196,7 +177,6 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                     <Link className="text-xs" color="primary" href="/">
                         Reset Password
                     </Link>
-                    {/* <Divider className="w-1/2" /> */}
                 </CardBody>
                 <SubmitButton status={isLogged} />
             </form>
