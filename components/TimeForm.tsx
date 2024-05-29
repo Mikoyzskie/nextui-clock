@@ -11,6 +11,7 @@ import { Button } from "@nextui-org/button";
 import dynamic from 'next/dynamic';
 import { useState, useEffect, useRef } from "react";
 import { useFormState, useFormStatus } from "react-dom";
+import { DateTime } from "luxon";
 
 import { siteConfig } from "@/config/site";
 import { IEmployees, IInitial } from "@/app/types"
@@ -22,14 +23,15 @@ const Time = dynamic(() => import('../components/time'), {
 
 const initialState: IInitial = {
     fieldValues: {
-        userid: "",
         username: "",
         pin: "",
-        hash: "",
         ipaddress: "",
-        localTime: ""
+        localTime: "",
+        timezoneClient: "",
+        timezoneOffset: ""
     },
     error: "",
+    reset: false,
 };
 
 function SubmitButton({ status }: { status: string }) {
@@ -60,16 +62,23 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
     const [isLogged, setIsLogged] = useState(false);
     const [timeIn, setTimeIn] = useState("Time in / Time out");
     const [isVisible, setIsVisible] = useState(false);
-
     const [state, formAction] = useFormState(Attendance, initialState)
     const [ipAddress, setIpAddress] = useState('');
-    const [hash, setHash] = useState('');
-    const [userid, setUserid] = useState(0);
     const formRef = useRef<HTMLFormElement>(null)
 
 
+    const dateTime = new Date()
+    const luxonDateTime = DateTime.now()
+
     // console.log(data);
-    console.log(state?.error);
+    if (state.error) {
+        console.log(state?.error);
+    }
+    if (state.reset) {
+        formRef.current?.reset()
+        state.error = ""
+        setIsAvailable(false)
+    }
 
 
     //Password visibility
@@ -83,8 +92,6 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
         if (userAvailable) {
             setIsAvailable(true)
             setIsLogged(userAvailable.Clock_Status)
-            setHash(userAvailable.employee_pin)
-            setUserid(userAvailable.id)
             if (userAvailable.Clock_Status) {
                 setTimeIn("Time out")
             } else {
@@ -117,11 +124,10 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
         fetchIpAddress();
     }, []);
 
-    //Get local time to convert
-    const now = new Date();
+    const timezoneOffset = dateTime.toLocaleDateString(undefined, { day: '2-digit', timeZoneName: 'short' }).substring(4)
 
-    console.log(now.toISOString());
-
+    // console.log(now.toISOString());
+    // console.log(luxonNow.zoneName);
 
     return (
         <Card className="flex flex-col items-center justify-center gap-4 p-10">
@@ -132,7 +138,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                     src="/logo-dark.png"
                     width={150}
                 />
-                <Time time={now.getTime()} />
+                <Time time={dateTime.getTime()} />
             </CardHeader>
             <form
                 ref={formRef} action={formAction}
@@ -179,9 +185,10 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                         type={isVisible ? "text" : "password"}
                     />
                     <input defaultValue={ipAddress} id="ipaddress" name="ipaddress" type="hidden" />
-                    <input defaultValue={hash} id="hash" name="hash" type="hidden" />
-                    <input defaultValue={userid} id="userid" name="userid" type="hidden" />
-                    <input defaultValue={now.toISOString()} id="localTime" name="localTime" type="hidden" />
+                    <input defaultValue={dateTime.toISOString()} id="localTime" name="localTime" type="hidden" />
+                    <input defaultValue={timezoneOffset} id="timezoneOffset" name="timezoneOffset" type="hidden" />
+                    <input defaultValue={luxonDateTime.zoneName} id="timezoneClient" name="timezoneClient" type="hidden" />
+
                     <Link className="text-xs" color="primary" href="/">
                         Reset Password
                     </Link>

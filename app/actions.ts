@@ -5,118 +5,200 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { DateTime } from "luxon";
 
-import { checkIpAddress, getRecentClock, verifyPin } from "@/lib/directus";
+import {
+  checkIpAddress,
+  getRecentClock,
+  verifyPin,
+  getUser,
+  AttendanceIn,
+  ExtendTimeIn,
+  AttendanceOut,
+  ExtendTimeOut,
+} from "@/lib/directus";
 
 const emptyField = {
-  userid: 0,
   username: "",
   pin: "",
-  hash: "",
   ipaddress: "",
-  //   localTime: "",
-  //   timezoneClient: "",
-  //   timezoneOffset: "",
+  localTime: "",
+  timezoneClient: "",
+  timezoneOffset: "",
 };
 
 export async function Attendance(
   prevState: {
     error: string;
+    reset: boolean;
   },
   formData: FormData
 ) {
   const schema = z.object({
-    userid: z.string().min(1),
     username: z.string().min(1),
     pin: z.string().min(1),
-    hash: z.string().min(1),
     ipaddress: z.string().min(1),
     localTime: z.string().min(1),
+    timezoneClient: z.string().min(1),
+    timezoneOffset: z.string().min(1),
   });
   const parse = schema.safeParse({
-    userid: formData.get("userid"),
     username: formData.get("username"),
     pin: formData.get("pin"),
-    hash: formData.get("hash"),
     ipaddress: formData.get("ipaddress"),
     localTime: formData.get("localTime"),
+    timezoneClient: formData.get("timezoneClient"),
+    timezoneOffset: formData.get("timezoneOffset"),
   });
 
   if (!parse.success) {
-    return { error: "Failed to parse form data" };
+    return { error: "Failed to parse form data", reset: false };
   }
 
   const data = parse.data;
 
   const {
-    userid,
     username,
     pin,
-    hash,
     ipaddress,
     localTime,
-    // timezoneClient,
-    // timezoneOffset,
+    timezoneClient,
+    timezoneOffset,
   } = data;
 
   const formValues = {
-    userid,
     username,
     pin,
-    hash,
     ipaddress,
     localTime,
-    // timezoneClient,
-    // timezoneOffset,
+    timezoneClient,
+    timezoneOffset,
   };
 
   try {
+    const isValidUser: any = await getUser(username);
+
+    if (isValidUser?.length === 0)
+      return {
+        error: "User not found",
+        formValues,
+        reset: false,
+      };
+
+    const checkPin = await verifyPin(pin, isValidUser[0].employee_pin);
+
+    if (!checkPin)
+      return {
+        error: "Invalid pin",
+        formValues,
+        reset: false,
+      };
+
     const isValidIpAddres = await checkIpAddress(ipaddress);
 
     if (isValidIpAddres?.length === 0)
       return {
         error: "Ip Address Invalid",
         formValues,
+        reset: false,
       };
 
-    const checkPin = await verifyPin(pin, hash);
-
-    if (!checkPin)
-      return {
-        error: "Invalid pin",
-        formValues,
-      };
-
-    const checkAttendance: any = await getRecentClock(Number(userid));
+    const checkAttendance: any = await getRecentClock(isValidUser[0].id);
 
     if (checkAttendance && checkAttendance.length > 0) {
-      if (checkAttendance[0].clock_out_utc === null) {
-        const jsDate = new Date(localTime);
-        const luxonInputDatetime = DateTime.fromJSDate(jsDate, {
-          zone: checkAttendance.local_device_timezone,
-        });
-        const currentTimeIn = new Date(checkAttendance[0].clock_in_utc);
-        const luxonCurrentDatetime = DateTime.fromJSDate(currentTimeIn, {
-          zone: checkAttendance.local_device_timezone,
-        });
+      const jsDate = new Date(localTime);
+      const luxonInputDatetime = DateTime.fromJSDate(jsDate, {
+        zone: checkAttendance.local_device_timezone,
+      });
+      const currentTimeIn = new Date(checkAttendance[0].clock_in_utc);
+      const luxonCurrentDatetime = DateTime.fromJSDate(currentTimeIn, {
+        zone: checkAttendance.local_device_timezone,
+      });
 
+      if (checkAttendance[0].clock_out_utc === null) {
         if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
-          console.log("log me out");
-        } else {
-          console.log("forgot to log out yesterday");
+          //Log out
+
+          await AttendanceOut(checkAttendance[0].id, localTime);
+          await ExtendTimeOut(isValidUser[0].id);
+
+          revalidatePath("/");
+
+          return {
+            error: "Logged out",
+            emptyField,
+            reset: true,
+          };
         }
+
+        //Log in instead
+
+        await AttendanceIn(
+          checkAttendance[0].id,
+          localTime,
+          timezoneClient,
+          timezoneOffset
+        );
+        await ExtendTimeIn(checkAttendance[0].id);
+
+        revalidatePath("/");
+
+        return {
+          error: "Forgot to out last time",
+          emptyField,
+          reset: true,
+        };
       } else {
+        if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
+          revalidatePath("/");
+
+          return {
+            error: "Already Logged",
+            emptyField,
+            reset: true,
+          };
+        }
+
+        //Log in
+
+        await AttendanceIn(
+          checkAttendance[0].id,
+          localTime,
+          timezoneClient,
+          timezoneOffset
+        );
+        await ExtendTimeIn(checkAttendance[0].id);
+
+        revalidatePath("/");
+
+        return {
+          error: "Logged in",
+          emptyField,
+          reset: true,
+        };
       }
     }
+
+    //Log in
+
+    await AttendanceIn(
+      checkAttendance[0].id,
+      localTime,
+      timezoneClient,
+      timezoneOffset
+    );
+    await ExtendTimeIn(checkAttendance[0].id);
+
     revalidatePath("/");
 
     return {
-      error: "No error",
+      error: "Logged in",
       emptyField,
+      reset: true,
     };
   } catch (error) {
     return {
       error: "Internal Server Error",
       formValues,
+      reset: false,
     };
   }
 }
