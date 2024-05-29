@@ -141,11 +141,12 @@ export async function Attendance(
           timezoneOffset
         );
         await ExtendTimeIn(isValidUser[0].id);
+        await AttendanceOut(checkAttendance[0].id, "No Log");
 
         revalidatePath("/");
 
         return {
-          error: "Forgot to out last time",
+          error: "Logged in",
           emptyField,
           reset: true,
         };
