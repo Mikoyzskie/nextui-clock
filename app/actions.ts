@@ -105,16 +105,17 @@ export async function Attendance(
 
     if (checkAttendance && checkAttendance.length > 0) {
       const jsDate = new Date(localTime);
-      const luxonInputDatetime = DateTime.fromJSDate(jsDate, {
-        zone: checkAttendance.local_device_timezone,
-      });
+      const luxonInputDatetime = DateTime.fromJSDate(jsDate);
       const currentTimeIn = new Date(checkAttendance[0].clock_in_utc);
       const luxonCurrentDatetime = DateTime.fromJSDate(currentTimeIn, {
         zone: checkAttendance.local_device_timezone,
       });
 
+      const todayLuxon = DateTime.now();
+      const localLuxon = todayLuxon.setZone(timezoneClient);
+
       if (checkAttendance[0].clock_out_utc === null) {
-        if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
+        if (luxonInputDatetime.day === localLuxon.day) {
           //Log out
 
           await AttendanceOut(checkAttendance[0].id, localTime);
@@ -132,12 +133,12 @@ export async function Attendance(
         //Log in instead
 
         await AttendanceIn(
-          checkAttendance[0].id,
+          isValidUser[0].id,
           localTime,
           timezoneClient,
           timezoneOffset
         );
-        await ExtendTimeIn(checkAttendance[0].id);
+        await ExtendTimeIn(isValidUser[0].id);
 
         revalidatePath("/");
 
@@ -160,12 +161,12 @@ export async function Attendance(
         //Log in
 
         await AttendanceIn(
-          checkAttendance[0].id,
+          isValidUser[0].id,
           localTime,
           timezoneClient,
           timezoneOffset
         );
-        await ExtendTimeIn(checkAttendance[0].id);
+        await ExtendTimeIn(isValidUser[0].id);
 
         revalidatePath("/");
 
@@ -180,12 +181,12 @@ export async function Attendance(
     //Log in
 
     await AttendanceIn(
-      checkAttendance[0].id,
+      isValidUser[0].id,
       localTime,
       timezoneClient,
       timezoneOffset
     );
-    await ExtendTimeIn(checkAttendance[0].id);
+    await ExtendTimeIn(isValidUser[0].id);
 
     revalidatePath("/");
 

@@ -186,9 +186,14 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                     <input defaultValue={timezoneOffset} id="timezoneOffset" name="timezoneOffset" type="hidden" />
                     <input defaultValue={luxonDateTime.zoneName} id="timezoneClient" name="timezoneClient" type="hidden" />
 
-                    <Link className="text-xs" color="primary" href="/">
-                        Reset Password
-                    </Link>
+                    <div className="w-full flex justify-around">
+                        <Link className="text-xs" color="primary" href="/">
+                            Reset Password
+                        </Link>
+                        <button className="text-xs" type="button" onClick={() => { formRef.current?.reset(); }}>
+                            Reset Form
+                        </button>
+                    </div>
                 </CardBody>
                 <SubmitButton status={isLogged} />
             </form>
