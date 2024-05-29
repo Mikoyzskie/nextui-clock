@@ -13,9 +13,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { DateTime } from "luxon";
 
+import { ThemeSwitch } from "@/components/theme-switch";
 import { siteConfig } from "@/config/site";
 import { IEmployees, IInitial } from "@/app/types"
 import { Attendance } from "@/app/actions";
+import clsx from "clsx";
 
 const Time = dynamic(() => import('../components/time'), {
     ssr: false,
@@ -57,6 +59,7 @@ function SubmitButton({ status }: { status: boolean | undefined }) {
 
 export default function TimeForm({ data }: { data: IEmployees[] }) {
     const [state, formAction] = useFormState(Attendance, initialState)
+    const [message, setMessage] = useState("")
     const [isAvailable, setIsAvailable] = useState(false);
     const [isLogged, setIsLogged] = useState<boolean | undefined>();
     const [isVisible, setIsVisible] = useState(false);
@@ -66,10 +69,10 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
     const dateTime = new Date()
     const luxonDateTime = DateTime.now()
 
-    if (state.error) {
-        console.log(state.error);
+    useEffect(() => {
+        setMessage(state.error)
+    }, [state.error])
 
-    }
 
     // Fetch IP address once when component mounts
     useEffect(() => {
@@ -96,7 +99,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
     useEffect(() => {
         if (state.reset) {
             formRef.current?.reset();
-            state.error = "";
+            // state.error = "";
             setIsAvailable(false);
             setIsLogged(false);
         }
@@ -114,17 +117,25 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
 
     const timezoneOffset = dateTime.toLocaleDateString(undefined, { day: '2-digit', timeZoneName: 'short' }).substring(4);
 
+    const errors = ["User not found", "Already Logged", "Invalid pin", "Ip Address Invalid", "Internal Server Error"]
+
     return (
         <Card className="flex flex-col items-center justify-center gap-4 p-10">
-            <CardHeader className="flex flex-col gap-3 w-full max-w-sm text-center items-center justify-center p-0">
+            <CardHeader className="flex flex-col gap-3 w-full max-w-sm text-center items-center justify-center p-0 relative">
                 <Image
                     alt="Zanda Logo"
                     className="p-0"
                     src="/logo-dark.png"
                     width={150}
                 />
+                <div className="absolute top-0 right-0">
+                    <ThemeSwitch />
+                </div>
                 <Time time={dateTime.getTime()} />
             </CardHeader>
+            <p className={clsx("text-xs font-bold",
+                errors.find(x => x === message) ? "text-red-500" : "text-green-500"
+            )}>{message}</p>
             <form
                 ref={formRef} action={formAction}
                 className="flex flex-col items-center justify-center gap-3"
@@ -133,6 +144,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                     <Input
                         isRequired
                         aria-label="Username Input"
+                        autoComplete="off"
                         classNames={{
                             inputWrapper: "bg-default-100",
                             input: "text-sm",
