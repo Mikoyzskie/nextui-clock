@@ -104,20 +104,21 @@ export async function Attendance(
     const checkAttendance: any = await getRecentClock(isValidUser[0].id);
 
     if (checkAttendance && checkAttendance.length > 0) {
-      const jsDate = new Date(localTime);
-      const luxonInputDatetime = DateTime.fromJSDate(jsDate, {
-        zone: timezoneClient,
-      });
-      const currentTimeIn = new Date(checkAttendance[0].clock_in_utc);
-      const luxonCurrentDatetime = DateTime.fromJSDate(currentTimeIn, {
-        zone: checkAttendance.local_device_timezone,
-      });
+      const jsDate = new Date();
+      const loginDate = new Date(checkAttendance[0].clock_in_utc);
+      // const luxonInputDatetime = DateTime.fromJSDate(jsDate, {
+      //   zone: timezoneClient,
+      // });
+      // const currentTimeIn = new Date(checkAttendance[0].clock_in_utc);
+      // const luxonCurrentDatetime = DateTime.fromJSDate(currentTimeIn, {
+      //   zone: checkAttendance.local_device_timezone,
+      // });
 
-      const todayLuxon = DateTime.now();
-      const localLuxon = todayLuxon.setZone(timezoneClient);
+      // const todayLuxon = DateTime.now();
+      // const localLuxon = todayLuxon.setZone(timezoneClient);
 
       if (checkAttendance[0].clock_out_utc === null) {
-        if (luxonInputDatetime.day === localLuxon.day) {
+        if (jsDate.getDay() === loginDate.getDay()) {
           //Log out
 
           await AttendanceOut(checkAttendance[0].id, localTime);
@@ -151,7 +152,7 @@ export async function Attendance(
           reset: true,
         };
       } else {
-        if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
+        if (jsDate.getDay() === loginDate.getDay()) {
           revalidatePath("/");
 
           return {
