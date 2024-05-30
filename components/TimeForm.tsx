@@ -12,12 +12,13 @@ import dynamic from 'next/dynamic';
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { DateTime } from "luxon";
+import clsx from "clsx";
 
 import { ThemeSwitch } from "@/components/theme-switch";
 import { siteConfig } from "@/config/site";
 import { IEmployees, IInitial } from "@/app/types"
 import { Attendance } from "@/app/actions";
-import clsx from "clsx";
+
 
 const Time = dynamic(() => import('../components/time'), {
     ssr: false,
