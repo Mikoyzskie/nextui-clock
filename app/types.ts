@@ -18,3 +18,15 @@ export interface IInitial {
   error: string;
   reset: boolean;
 }
+
+export interface IResetPassword {
+  fieldValues: {
+    username: string;
+    ipaddress: string;
+    old: string;
+    new: string;
+    confirm: string;
+  };
+  error: string;
+  reset: boolean;
+}

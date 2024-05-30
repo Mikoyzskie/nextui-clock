@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 'use client'
 
-import { Link } from "@nextui-org/link";
+import Link from "next/link"
 import { button as buttonStyles } from "@nextui-org/theme";
 import { Input } from "@nextui-org/input";
 import { CircleCheck, CircleX, Eye, EyeOff } from "lucide-react";
@@ -187,7 +187,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                     <input defaultValue={luxonDateTime.zoneName} id="timezoneClient" name="timezoneClient" type="hidden" />
 
                     <div className="w-full flex justify-around">
-                        <Link className="text-xs" color="primary" href="/">
+                        <Link className="text-xs" color="primary" href="/reset">
                             Reset Password
                         </Link>
                         <button className="text-xs" type="button" onClick={() => { formRef.current?.reset(); }}>

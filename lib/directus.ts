@@ -164,3 +164,13 @@ export async function getRecentClock(user: number) {
 export async function verifyPin(pin: string, hash: string) {
   return apiClient?.request(verifyHash(pin, hash));
 }
+
+//Pin Update
+
+export async function UpdatePin(id: number, pin: string) {
+  return await apiClient?.request(
+    updateItem(employees, id, {
+      employee_pin: pin,
+    })
+  );
+}
