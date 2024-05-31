@@ -113,6 +113,8 @@ export async function Attendance(
         zone: checkAttendance.local_device_timezone,
       });
 
+      console.log(luxonCurrentDatetime.day);
+
       const todayLuxon = DateTime.now();
       const localLuxon = todayLuxon.setZone(timezoneClient);
 
