@@ -120,6 +120,15 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
 
     const errors = ["User not found", "Already Logged", "Invalid pin", "Ip Address Invalid", "Internal Server Error"]
 
+    const jsDate = new Date();
+    const luxonInputDatetime = DateTime.fromJSDate(jsDate, {
+        zone: luxonDateTime.zoneName,
+    });
+
+    console.log(luxonInputDatetime.day);
+
+
+
     return (
         <Card className="flex flex-col items-center justify-center gap-4 p-10">
             <CardHeader className="flex flex-col gap-3 w-full max-w-sm text-center items-center justify-center p-0 relative">
