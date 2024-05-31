@@ -114,12 +114,13 @@ export async function Attendance(
       });
 
       console.log(luxonCurrentDatetime.day);
+      console.log(luxonInputDatetime.day);
 
       const todayLuxon = DateTime.now();
       const localLuxon = todayLuxon.setZone(timezoneClient);
 
-      if (!checkAttendance[0].clock_out_utc) {
-        if (luxonInputDatetime.day === localLuxon.day) {
+      if (checkAttendance[0].clock_out_utc === null) {
+        if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
           //Log out
 
           await AttendanceOut(checkAttendance[0].id, localTime);
