@@ -49,7 +49,7 @@ export default function RootLayout({
               className="rounded-none object-cover w-screen h-screen glass"
               src="/background.jpg"
             />
-            <main className="container flex flex-col h-full mx-auto items-center justify-center w-fit px-6 absolute inset-0 z-10 ">
+            <main className="container  mx-auto  w-fit p-6 absolute inset-0 z-10 ">
               {children}
             </main>
           </div>
