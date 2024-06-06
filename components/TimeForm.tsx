@@ -71,8 +71,16 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
     const luxonDateTime = DateTime.now()
 
     useEffect(() => {
-        setMessage(state.error)
-    }, [state.error])
+        if (state.error) {
+            setMessage(state.error)
+        }
+        if (state.reset) {
+            formRef.current?.reset();
+            setIsAvailable(false);
+            setIsLogged(false);
+        }
+    }, [state])
+
 
 
     // Fetch IP address once when component mounts
@@ -96,16 +104,6 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
         fetchIpAddress();
     }, []);
 
-    // Reset form state if needed
-    useEffect(() => {
-        if (state.reset) {
-            formRef.current?.reset();
-            // state.error = "";
-            setIsAvailable(false);
-            setIsLogged(false);
-        }
-    }, [state.reset]);
-
     const toggleVisibility = useCallback(() => setIsVisible(prev => !prev), []);
 
     const handleUsernameChange = useCallback((event: any) => {
@@ -124,9 +122,6 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
     const luxonInputDatetime = DateTime.fromJSDate(jsDate, {
         zone: luxonDateTime.zoneName,
     });
-
-    console.log(luxonInputDatetime.day);
-
 
 
     return (
@@ -192,7 +187,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                         type={isVisible ? "text" : "password"}
                     />
                     <input defaultValue={ipAddress} id="ipaddress" name="ipaddress" type="hidden" />
-                    <input defaultValue={dateTime.toISOString()} id="localTime" name="localTime" type="hidden" />
+                    <input defaultValue={jsDate.toISOString()} id="localTime" name="localTime" type="hidden" />
                     <input defaultValue={timezoneOffset} id="timezoneOffset" name="timezoneOffset" type="hidden" />
                     <input defaultValue={luxonDateTime.zoneName} id="timezoneClient" name="timezoneClient" type="hidden" />
 

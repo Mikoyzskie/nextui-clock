@@ -104,7 +104,7 @@ export async function Attendance(
     const checkAttendance: any = await getRecentClock(isValidUser[0].id);
 
     if (checkAttendance && checkAttendance.length > 0) {
-      const jsDate = new Date();
+      const jsDate = new Date(localTime);
       const luxonInputDatetime = DateTime.fromJSDate(jsDate, {
         zone: timezoneClient,
       });
@@ -116,71 +116,97 @@ export async function Attendance(
       console.log(luxonCurrentDatetime.day);
       console.log(luxonInputDatetime.day);
 
-      const todayLuxon = DateTime.now();
-      const localLuxon = todayLuxon.setZone(timezoneClient);
-
       if (checkAttendance[0].clock_out_utc === null) {
-        if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
-          //Log out
+        //Log out
 
-          await AttendanceOut(checkAttendance[0].id, localTime);
-          await ExtendTimeOut(isValidUser[0].id);
+        await AttendanceOut(checkAttendance[0].id, localTime);
+        await ExtendTimeOut(isValidUser[0].id);
 
-          revalidatePath("/");
+        revalidatePath("/");
 
-          return {
-            error: "Logged out",
-            emptyField,
-            reset: true,
-          };
-        } else {
-          //Log in instead
+        return {
+          error: "Logged out",
+          emptyField,
+          reset: true,
+        };
 
-          await AttendanceIn(
-            isValidUser[0].id,
-            localTime,
-            timezoneClient,
-            timezoneOffset
-          );
-          await ExtendTimeIn(isValidUser[0].id);
-          await AttendanceOut(checkAttendance[0].id, "No Log");
+        // if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
+        //   //Log out
 
-          revalidatePath("/");
+        //   await AttendanceOut(checkAttendance[0].id, localTime);
+        //   await ExtendTimeOut(isValidUser[0].id);
 
-          return {
-            error: "Logged in",
-            emptyField,
-            reset: true,
-          };
-        }
+        //   revalidatePath("/");
+
+        //   return {
+        //     error: "Logged out",
+        //     emptyField,
+        //     reset: true,
+        //   };
+        // } else {
+        //   //Log in instead
+
+        //   await AttendanceIn(
+        //     isValidUser[0].id,
+        //     localTime,
+        //     timezoneClient,
+        //     timezoneOffset
+        //   );
+        //   await ExtendTimeIn(isValidUser[0].id);
+        //   await AttendanceOut(checkAttendance[0].id, "No Log");
+
+        //   revalidatePath("/");
+
+        //   return {
+        //     error: "Logged in",
+        //     emptyField,
+        //     reset: true,
+        //   };
+        // }
       } else {
-        if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
-          revalidatePath("/");
+        await AttendanceIn(
+          isValidUser[0].id,
+          localTime,
+          timezoneClient,
+          timezoneOffset
+        );
+        await ExtendTimeIn(isValidUser[0].id);
 
-          return {
-            error: "Already Logged",
-            emptyField,
-            reset: true,
-          };
-        } else {
-          //Log in
+        revalidatePath("/");
 
-          await AttendanceIn(
-            isValidUser[0].id,
-            localTime,
-            timezoneClient,
-            timezoneOffset
-          );
-          await ExtendTimeIn(isValidUser[0].id);
+        return {
+          error: "Logged in",
+          emptyField,
+          reset: true,
+        };
 
-          revalidatePath("/");
+        // if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
+        //   revalidatePath("/");
 
-          return {
-            error: "Logged in",
-            emptyField,
-            reset: true,
-          };
-        }
+        //   return {
+        //     error: "Already Logged",
+        //     emptyField,
+        //     reset: true,
+        //   };
+        // } else {
+        //   //Log in
+
+        //   await AttendanceIn(
+        //     isValidUser[0].id,
+        //     localTime,
+        //     timezoneClient,
+        //     timezoneOffset
+        //   );
+        //   await ExtendTimeIn(isValidUser[0].id);
+
+        //   revalidatePath("/");
+
+        //   return {
+        //     error: "Logged in",
+        //     emptyField,
+        //     reset: true,
+        //   };
+        // }
       }
     } else {
       //Log in
