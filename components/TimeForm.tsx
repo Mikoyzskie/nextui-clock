@@ -71,7 +71,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
     const luxonDateTime = DateTime.now()
 
     useEffect(() => {
-        if (state.error) {
+        if (state && state.error) {
             setMessage(state.error)
         }
         if (state.reset) {
@@ -97,7 +97,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                     throw new Error('Failed to fetch IP address');
                 }
             } catch (error) {
-                console.error(`Error fetching IP address: ${error}`);
+                throw new Error(`Error fetching IP address: ${error}`);
             }
         };
 
@@ -119,9 +119,6 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
     const errors = ["User not found", "Already Logged", "Invalid pin", "Ip Address Invalid", "Internal Server Error"]
 
     const jsDate = new Date();
-    const luxonInputDatetime = DateTime.fromJSDate(jsDate, {
-        zone: luxonDateTime.zoneName,
-    });
 
 
     return (

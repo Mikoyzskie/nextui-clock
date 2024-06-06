@@ -113,22 +113,41 @@ export async function Attendance(
         zone: checkAttendance.local_device_timezone,
       });
 
-      console.log(luxonCurrentDatetime.day);
-      console.log(luxonInputDatetime.day);
+      // console.log(luxonCurrentDatetime.day);
+      // console.log(luxonInputDatetime.day);
 
       if (checkAttendance[0].clock_out_utc === null) {
-        //Log out
+        if (luxonCurrentDatetime.day < luxonInputDatetime.day) {
+          await AttendanceIn(
+            isValidUser[0].id,
+            localTime,
+            timezoneClient,
+            timezoneOffset
+          );
+          await ExtendTimeIn(isValidUser[0].id);
+          await AttendanceOut(checkAttendance[0].id, "No Log");
 
-        await AttendanceOut(checkAttendance[0].id, localTime);
-        await ExtendTimeOut(isValidUser[0].id);
+          revalidatePath("/");
 
-        revalidatePath("/");
+          return {
+            error: "Logged in",
+            emptyField,
+            reset: true,
+          };
+        } else {
+          //Log out
 
-        return {
-          error: "Logged out",
-          emptyField,
-          reset: true,
-        };
+          await AttendanceOut(checkAttendance[0].id, localTime);
+          await ExtendTimeOut(isValidUser[0].id);
+
+          revalidatePath("/");
+
+          return {
+            error: "Logged out",
+            emptyField,
+            reset: true,
+          };
+        }
 
         // if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
         //   //Log out
