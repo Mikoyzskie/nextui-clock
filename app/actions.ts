@@ -105,19 +105,11 @@ export async function Attendance(
 
     if (checkAttendance && checkAttendance.length > 0) {
       const jsDate = new Date(localTime);
-      const luxonInputDatetime = DateTime.fromJSDate(jsDate, {
-        zone: timezoneClient,
-      });
-      const currentTimeIn = new Date(checkAttendance[0].clock_in_utc);
-      const luxonCurrentDatetime = DateTime.fromJSDate(currentTimeIn, {
-        zone: checkAttendance.local_device_timezone,
-      });
 
-      // console.log(luxonCurrentDatetime.day);
-      // console.log(luxonInputDatetime.day);
+      const currentTimeIn = new Date(checkAttendance[0].date_created);
 
       if (checkAttendance[0].clock_out_utc === null) {
-        if (luxonCurrentDatetime.day < luxonInputDatetime.day) {
+        if (jsDate.getDate() !== currentTimeIn.getDate()) {
           await AttendanceIn(
             isValidUser[0].id,
             localTime,
@@ -183,21 +175,31 @@ export async function Attendance(
         //   };
         // }
       } else {
-        await AttendanceIn(
-          isValidUser[0].id,
-          localTime,
-          timezoneClient,
-          timezoneOffset
-        );
-        await ExtendTimeIn(isValidUser[0].id);
+        if (jsDate.getDate() === currentTimeIn.getDate()) {
+          revalidatePath("/");
 
-        revalidatePath("/");
+          return {
+            error: "Already logged today",
+            emptyField,
+            reset: true,
+          };
+        } else {
+          await AttendanceIn(
+            isValidUser[0].id,
+            localTime,
+            timezoneClient,
+            timezoneOffset
+          );
+          await ExtendTimeIn(isValidUser[0].id);
 
-        return {
-          error: "Logged in",
-          emptyField,
-          reset: true,
-        };
+          revalidatePath("/");
+
+          return {
+            error: "Logged in",
+            emptyField,
+            reset: true,
+          };
+        }
 
         // if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
         //   revalidatePath("/");

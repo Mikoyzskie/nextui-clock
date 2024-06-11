@@ -116,9 +116,10 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
 
     const timezoneOffset = dateTime.toLocaleDateString(undefined, { day: '2-digit', timeZoneName: 'short' }).substring(4);
 
-    const errors = ["User not found", "Already Logged", "Invalid pin", "Ip Address Invalid", "Internal Server Error"]
+    const errors = ["User not found", "Already logged today", "Invalid pin", "Ip Address Invalid", "Internal Server Error"]
 
     const jsDate = new Date();
+
 
 
     return (
