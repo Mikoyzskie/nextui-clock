@@ -109,7 +109,7 @@ export async function Attendance(
       const currentTimeIn = new Date(checkAttendance[0].date_created);
 
       if (checkAttendance[0].clock_out_utc === null) {
-        if (jsDate.getDate() !== currentTimeIn.getDate()) {
+        if (jsDate.getDate() - currentTimeIn.getDate() >= 2) {
           await AttendanceIn(
             isValidUser[0].id,
             localTime,
@@ -140,40 +140,6 @@ export async function Attendance(
             reset: true,
           };
         }
-
-        // if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
-        //   //Log out
-
-        //   await AttendanceOut(checkAttendance[0].id, localTime);
-        //   await ExtendTimeOut(isValidUser[0].id);
-
-        //   revalidatePath("/");
-
-        //   return {
-        //     error: "Logged out",
-        //     emptyField,
-        //     reset: true,
-        //   };
-        // } else {
-        //   //Log in instead
-
-        //   await AttendanceIn(
-        //     isValidUser[0].id,
-        //     localTime,
-        //     timezoneClient,
-        //     timezoneOffset
-        //   );
-        //   await ExtendTimeIn(isValidUser[0].id);
-        //   await AttendanceOut(checkAttendance[0].id, "No Log");
-
-        //   revalidatePath("/");
-
-        //   return {
-        //     error: "Logged in",
-        //     emptyField,
-        //     reset: true,
-        //   };
-        // }
       } else {
         if (jsDate.getDate() === currentTimeIn.getDate()) {
           revalidatePath("/");
@@ -200,34 +166,6 @@ export async function Attendance(
             reset: true,
           };
         }
-
-        // if (luxonInputDatetime.day === luxonCurrentDatetime.day) {
-        //   revalidatePath("/");
-
-        //   return {
-        //     error: "Already Logged",
-        //     emptyField,
-        //     reset: true,
-        //   };
-        // } else {
-        //   //Log in
-
-        //   await AttendanceIn(
-        //     isValidUser[0].id,
-        //     localTime,
-        //     timezoneClient,
-        //     timezoneOffset
-        //   );
-        //   await ExtendTimeIn(isValidUser[0].id);
-
-        //   revalidatePath("/");
-
-        //   return {
-        //     error: "Logged in",
-        //     emptyField,
-        //     reset: true,
-        //   };
-        // }
       }
     } else {
       //Log in
