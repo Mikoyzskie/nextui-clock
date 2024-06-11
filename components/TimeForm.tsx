@@ -74,7 +74,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
         if (state && state.error) {
             setMessage(state.error)
         }
-        if (state.reset) {
+        if (state && state.reset) {
             formRef.current?.reset();
             setIsAvailable(false);
             setIsLogged(false);
