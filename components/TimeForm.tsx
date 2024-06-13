@@ -13,11 +13,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { DateTime } from "luxon";
 import clsx from "clsx";
+import moment from 'moment';
 
 import { ThemeSwitch } from "@/components/theme-switch";
 import { siteConfig } from "@/config/site";
 import { IEmployees, IInitial } from "@/app/types"
 import { Attendance } from "@/app/actions";
+
 
 
 const Time = dynamic(() => import('../components/time'), {
@@ -82,7 +84,6 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
     }, [state])
 
 
-
     // Fetch IP address once when component mounts
     useEffect(() => {
         const fetchIpAddress = async () => {
@@ -118,9 +119,9 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
 
     const errors = ["User not found", "Already logged today", "Invalid pin", "Ip Address Invalid", "Internal Server Error"]
 
-    const jsDate = new Date();
+    let m = moment().format()
 
-
+    // console.log(m);
 
     return (
         <Card className="flex flex-col items-center justify-center gap-4 p-10">
@@ -185,7 +186,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                         type={isVisible ? "text" : "password"}
                     />
                     <input defaultValue={ipAddress} id="ipaddress" name="ipaddress" type="hidden" />
-                    <input defaultValue={jsDate.toISOString()} id="localTime" name="localTime" type="hidden" />
+                    <input defaultValue={m} id="localTime" name="localTime" type="hidden" />
                     <input defaultValue={timezoneOffset} id="timezoneOffset" name="timezoneOffset" type="hidden" />
                     <input defaultValue={luxonDateTime.zoneName} id="timezoneClient" name="timezoneClient" type="hidden" />
 
