@@ -127,7 +127,7 @@ export async function Attendance(
     let clock = moment(checkAttendance[0].clock_in_utc).date();
 
     //TIME IN: If log out of the latest entry is empty and input date is not equal to latest entry clock in
-    if (checkAttendance[0].clock_out_utc === null) {
+    if (checkAttendance[0].clock_out_utc !== null) {
       await AttendanceIn(
         isValidUser[0].id,
         localTime,
