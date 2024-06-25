@@ -76,30 +76,33 @@ export async function Attendance(
   try {
     const isValidUser: any = await getUser(username);
 
-    if (isValidUser?.length === 0)
+    if (isValidUser?.length === 0) {
       return {
         error: "User not found",
         formValues,
         reset: false,
       };
+    }
 
     const checkPin = await verifyPin(pin, isValidUser[0].employee_pin);
 
-    if (!checkPin)
+    if (!checkPin) {
       return {
         error: "Invalid pin",
         formValues,
         reset: false,
       };
+    }
 
     const isValidIpAddres = await checkIpAddress(ipaddress);
 
-    if (isValidIpAddres?.length === 0)
+    if (isValidIpAddres?.length === 0) {
       return {
         error: "Ip Address Invalid",
         formValues,
         reset: false,
       };
+    }
 
     const checkAttendance: any = await getRecentClock(isValidUser[0].id);
 
@@ -127,7 +130,7 @@ export async function Attendance(
     let clock = moment(checkAttendance[0].clock_in_utc).date();
 
     //TIME IN: If log out of the latest entry is empty and input date is not equal to latest entry clock in
-    if (checkAttendance[0].clock_out_utc !== null) {
+    if (checkAttendance[0].clock_out_utc === null) {
       await AttendanceIn(
         isValidUser[0].id,
         localTime,
@@ -143,9 +146,13 @@ export async function Attendance(
         emptyField,
         reset: true,
       };
-    } else {
+    }
+
+    // TIME OUT: If log out of the latest entry clock out is empty and entry is same date
+    if (checkAttendance[0].clock_out_utc === null && now === clock) {
       await AttendanceOut(checkAttendance[0].id, localTime);
       await ExtendTimeOut(isValidUser[0].id);
+
       revalidatePath("/");
 
       return {
@@ -155,44 +162,30 @@ export async function Attendance(
       };
     }
 
-    //TIME OUT: If log out of the latest entry clock out is empty and entry is same date
-    // if (checkAttendance[0].clock_out_utc === null && now === clock) {
-    //   await AttendanceOut(checkAttendance[0].id, localTime);
-    //   await ExtendTimeOut(isValidUser[0].id);
-
-    //   revalidatePath("/");
-
-    //   return {
-    //     error: "Logged out",
-    //     emptyField,
-    //     reset: true,
-    //   };
-    // }
-
     //ALREADY LOGGED: If latest entry clock out is not empty and entry is same date
-    // if (checkAttendance[0].clock_out_utc && now === clock) {
-    //   return {
-    //     error: "Already logged today",
-    //     emptyField,
-    //     reset: true,
-    //   };
-    // }
+    if (checkAttendance[0].clock_out_utc && now === clock) {
+      return {
+        error: "Already logged today",
+        emptyField,
+        reset: true,
+      };
+    }
 
-    // await AttendanceIn(
-    //   isValidUser[0].id,
-    //   localTime,
-    //   timezoneClient,
-    //   timezoneOffset
-    // );
-    // await ExtendTimeIn(isValidUser[0].id);
+    await AttendanceIn(
+      isValidUser[0].id,
+      localTime,
+      timezoneClient,
+      timezoneOffset
+    );
+    await ExtendTimeIn(isValidUser[0].id);
 
-    // revalidatePath("/");
+    revalidatePath("/");
 
-    // return {
-    //   error: "Logged in",
-    //   emptyField,
-    //   reset: true,
-    // };
+    return {
+      error: "Logged in",
+      emptyField,
+      reset: true,
+    };
   } catch (error) {
     return {
       error: "Internal Server Error",
