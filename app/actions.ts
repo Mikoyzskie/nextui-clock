@@ -149,7 +149,7 @@ export async function Attendance(
     }
 
     // TIME OUT: If log out of the latest entry clock out is empty and entry is same date
-    if (checkAttendance[0].clock_out_utc === null && now === clock) {
+    if (checkAttendance[0].clock_out_utc !== null) {
       await AttendanceOut(checkAttendance[0].id, localTime);
       await ExtendTimeOut(isValidUser[0].id);
 
@@ -163,13 +163,13 @@ export async function Attendance(
     }
 
     //ALREADY LOGGED: If latest entry clock out is not empty and entry is same date
-    if (checkAttendance[0].clock_out_utc && now === clock) {
-      return {
-        error: "Already logged today",
-        emptyField,
-        reset: true,
-      };
-    }
+    // if (checkAttendance[0].clock_out_utc && now === clock) {
+    //   return {
+    //     error: "Already logged today",
+    //     emptyField,
+    //     reset: true,
+    //   };
+    // }
 
     await AttendanceIn(
       isValidUser[0].id,
