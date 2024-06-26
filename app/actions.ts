@@ -107,86 +107,84 @@ export async function Attendance(
 
     const checkAttendance: any = await getRecentClock(isValidUser[0].id);
 
-    if (checkAttendance.length === 0) {
-      //Log in
+    // if (checkAttendance.length === 0) {
+    //   //Log in
 
-      await AttendanceIn(
-        isValidUser[0].id,
-        localTime,
-        timezoneClient,
-        timezoneOffset
-      );
-      await ExtendTimeIn(isValidUser[0].id);
+    //   await AttendanceIn(
+    //     isValidUser[0].id,
+    //     localTime,
+    //     timezoneClient,
+    //     timezoneOffset
+    //   );
+    //   await ExtendTimeIn(isValidUser[0].id);
 
-      revalidatePath("/");
+    //   revalidatePath("/");
 
-      return {
-        error: "Logged in",
-        emptyField,
-        reset: true,
-      };
-    }
+    //   return {
+    //     error: "Logged in",
+    //     emptyField,
+    //     reset: true,
+    //   };
+    // }
 
     dayjs.extend(isToday);
     let clock = dayjs(checkAttendance[0].clock_in_utc);
 
-    //TIME IN: If log out of the latest entry is empty and input date is not equal to latest entry clock in
-    if (checkAttendance[0].clock_out_utc === null && !clock.isToday()) {
-      await AttendanceIn(
-        isValidUser[0].id,
-        localTime,
-        timezoneClient,
-        timezoneOffset
-      );
-      await ExtendTimeIn(isValidUser[0].id);
+    if (checkAttendance[0].clock_out_utc) {
+      if (clock.isToday()) {
+        return {
+          error: "Already logged today",
+          emptyField,
+          reset: true,
+        };
+      } else {
+        await AttendanceIn(
+          isValidUser[0].id,
+          localTime,
+          timezoneClient,
+          timezoneOffset
+        );
+        await ExtendTimeIn(isValidUser[0].id);
 
-      revalidatePath("/");
+        revalidatePath("/");
 
-      return {
-        error: "Logged in",
-        emptyField,
-        reset: true,
-      };
+        return {
+          error: "Logged in",
+          emptyField,
+          reset: true,
+        };
+      }
+    } else {
+      if (clock.isToday()) {
+        await AttendanceOut(checkAttendance[0].id, localTime);
+        await ExtendTimeOut(isValidUser[0].id);
+
+        revalidatePath("/");
+
+        return {
+          error: "Logged out",
+          emptyField,
+          reset: true,
+        };
+      } else {
+        await AttendanceIn(
+          isValidUser[0].id,
+          localTime,
+          timezoneClient,
+          timezoneOffset
+        );
+        await ExtendTimeIn(isValidUser[0].id);
+        await AttendanceOut(checkAttendance[0].id, "No Log");
+
+        revalidatePath("/");
+
+        return {
+          error: "Logged in",
+          emptyField,
+          reset: true,
+        };
+      }
     }
-
-    // TIME OUT: If log out of the latest entry clock out is empty and entry is same date
-    if (checkAttendance[0].clock_out_utc === null && clock.isToday()) {
-      await AttendanceOut(checkAttendance[0].id, localTime);
-      await ExtendTimeOut(isValidUser[0].id);
-
-      revalidatePath("/");
-
-      return {
-        error: "Logged out",
-        emptyField,
-        reset: true,
-      };
-    }
-
-    //ALREADY LOGGED: If latest entry clock out is not empty and entry is same date
-    if (checkAttendance[0].clock_out_utc && clock.isToday()) {
-      return {
-        error: "Already logged today",
-        emptyField,
-        reset: true,
-      };
-    }
-
-    await AttendanceIn(
-      isValidUser[0].id,
-      localTime,
-      timezoneClient,
-      timezoneOffset
-    );
-    await ExtendTimeIn(isValidUser[0].id);
-
-    revalidatePath("/");
-
-    return {
-      error: "Logged in",
-      emptyField,
-      reset: true,
-    };
   } catch (error) {
     return {
       error: "Internal Server Error",
