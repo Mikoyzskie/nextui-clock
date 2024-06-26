@@ -6,6 +6,7 @@ import { z } from "zod";
 import dayjs from "dayjs";
 import isToday from "dayjs/plugin/isToday";
 import timezone from "dayjs/plugin/timezone";
+import moment from "moment";
 
 import {
   checkIpAddress,
@@ -108,13 +109,12 @@ export async function Attendance(
 
     const checkAttendance: any = await getRecentClock(isValidUser[0].id);
 
-    dayjs.extend(timezone);
-    dayjs.tz.setDefault(timezoneClient);
-    dayjs.extend(isToday);
-    let clock = dayjs(checkAttendance[0].date_created);
+    const parsedTime = moment(checkAttendance[0].clock_in_utc);
+    const timeAfter12Hours = parsedTime.add(12, "hours");
+    const has12HoursPassed = moment(localTime).isAfter(timeAfter12Hours);
 
     if (checkAttendance[0].clock_out_utc) {
-      if (clock.isToday()) {
+      if (!has12HoursPassed) {
         return {
           error: "Already logged today",
           emptyField,
@@ -138,7 +138,7 @@ export async function Attendance(
         };
       }
     } else {
-      if (clock.isToday()) {
+      if (!has12HoursPassed) {
         await AttendanceOut(checkAttendance[0].id, localTime);
         await ExtendTimeOut(isValidUser[0].id);
 
