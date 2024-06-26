@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import dayjs from "dayjs";
 import isToday from "dayjs/plugin/isToday";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 
 import {
   checkIpAddress,
@@ -107,26 +109,8 @@ export async function Attendance(
 
     const checkAttendance: any = await getRecentClock(isValidUser[0].id);
 
-    // if (checkAttendance.length === 0) {
-    //   //Log in
-
-    //   await AttendanceIn(
-    //     isValidUser[0].id,
-    //     localTime,
-    //     timezoneClient,
-    //     timezoneOffset
-    //   );
-    //   await ExtendTimeIn(isValidUser[0].id);
-
-    //   revalidatePath("/");
-
-    //   return {
-    //     error: "Logged in",
-    //     emptyField,
-    //     reset: true,
-    //   };
-    // }
-
+    dayjs.extend(timezone);
+    dayjs.tz.setDefault(timezoneClient);
     dayjs.extend(isToday);
     let clock = dayjs(checkAttendance[0].clock_in_utc);
 
