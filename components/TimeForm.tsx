@@ -11,11 +11,11 @@ import { Button } from "@nextui-org/button";
 import dynamic from "next/dynamic";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import { DateTime } from "luxon";
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
+import dayjs from "dayjs";
 import clsx from "clsx";
-import moment from "moment";
 
-import { ThemeSwitch } from "@/components/theme-switch";
 import { siteConfig } from "@/config/site";
 import { IEmployees, IInitial } from "@/app/types";
 import { Attendance } from "@/app/actions";
@@ -74,7 +74,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
     const formRef = useRef<HTMLFormElement>(null);
 
     const dateTime = new Date();
-    const luxonDateTime = DateTime.now();
+
 
     useEffect(() => {
         if (state && state.error) {
@@ -133,9 +133,12 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
         "Internal Server Error",
     ];
 
-    let m = moment().format();
+    let now = dayjs().format()
 
-    // console.log(m);
+    dayjs.extend(utc)
+    dayjs.extend(timezone)
+
+    let clientTimezone = dayjs.tz.guess()
 
     return (
         <Card className="flex flex-col items-center justify-center gap-4 p-10">
@@ -144,11 +147,9 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                     alt="Zanda Logo"
                     className="p-0"
                     src="/logo-dark.png"
-                    width={150}
+                    width={100}
                 />
-                <div className="absolute top-0 right-0">
-                    <ThemeSwitch />
-                </div>
+
                 <Time time={dateTime.getTime()} />
             </CardHeader>
             <p
@@ -220,7 +221,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                         type="hidden"
                     />
                     <input
-                        defaultValue={m}
+                        defaultValue={now}
                         id="localTime"
                         name="localTime"
                         type="hidden"
@@ -232,7 +233,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                         type="hidden"
                     />
                     <input
-                        defaultValue={luxonDateTime.zoneName}
+                        defaultValue={clientTimezone}
                         id="timezoneClient"
                         name="timezoneClient"
                         type="hidden"

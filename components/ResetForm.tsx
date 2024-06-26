@@ -12,7 +12,6 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import clsx from "clsx";
 
-import { ThemeSwitch } from "@/components/theme-switch";
 import { IEmployees, IResetPassword } from "@/app/types"
 import { pinReset } from "@/app/reset/actions";
 
@@ -83,7 +82,7 @@ export default function ResetForm({ data }: { data: IEmployees[] }) {
                     throw new Error('Failed to fetch IP address');
                 }
             } catch (error) {
-                console.error(`Error fetching IP address: ${error}`);
+                throw new Error(`Error fetching IP address: ${error}`);
             }
         };
 
@@ -129,9 +128,6 @@ export default function ResetForm({ data }: { data: IEmployees[] }) {
                     src="/logo-dark.png"
                     width={100}
                 />
-                <div className="absolute top-0 right-0">
-                    <ThemeSwitch />
-                </div>
 
             </CardHeader>
             <p className={clsx("text-xs font-bold",

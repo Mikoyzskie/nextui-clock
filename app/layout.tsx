@@ -3,11 +3,8 @@ import { Metadata, Viewport } from "next";
 import clsx from "clsx";
 import { Image } from "@nextui-org/image";
 
-import { Providers } from "./providers";
-
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
-// import { Navbar } from "@/components/navbar";
 
 export const metadata: Metadata = {
   title: {
@@ -41,19 +38,16 @@ export default function RootLayout({
           fontSans.variable,
         )}
       >
-        <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
-          <div className="relative flex flex-col h-screen items-center justify-center">
-            {/* <Navbar /> */}
-            <Image
-              alt="Background Image"
-              className="rounded-none object-cover w-screen h-screen glass"
-              src="/background.jpg"
-            />
-            <main className="container  mx-auto  w-fit p-6 absolute inset-0 z-10 ">
-              {children}
-            </main>
-          </div>
-        </Providers>
+        <div className="relative flex flex-col h-screen items-center justify-center">
+          <Image
+            alt="Background Image"
+            className="rounded-none object-cover w-screen h-screen glass"
+            src="/background.jpg"
+          />
+          <main className="container  mx-auto  w-fit p-6 absolute inset-0 z-10 ">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   );

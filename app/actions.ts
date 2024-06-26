@@ -3,7 +3,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import moment from "moment";
+import dayjs from "dayjs";
+import isToday from "dayjs/plugin/isToday";
 
 import {
   checkIpAddress,
@@ -126,11 +127,11 @@ export async function Attendance(
       };
     }
 
-    let now = moment(localTime).date();
-    let clock = moment(checkAttendance[0].clock_in_utc).date();
+    dayjs.extend(isToday);
+    let clock = dayjs(checkAttendance[0].clock_in_utc);
 
     //TIME IN: If log out of the latest entry is empty and input date is not equal to latest entry clock in
-    if (checkAttendance[0].clock_out_utc === null && now !== clock) {
+    if (checkAttendance[0].clock_out_utc === null && !clock.isToday()) {
       await AttendanceIn(
         isValidUser[0].id,
         localTime,
@@ -149,7 +150,7 @@ export async function Attendance(
     }
 
     // TIME OUT: If log out of the latest entry clock out is empty and entry is same date
-    if (checkAttendance[0].clock_out_utc === null && now === clock) {
+    if (checkAttendance[0].clock_out_utc === null && clock.isToday()) {
       await AttendanceOut(checkAttendance[0].id, localTime);
       await ExtendTimeOut(isValidUser[0].id);
 
@@ -163,7 +164,7 @@ export async function Attendance(
     }
 
     //ALREADY LOGGED: If latest entry clock out is not empty and entry is same date
-    if (checkAttendance[0].clock_out_utc && now === clock) {
+    if (checkAttendance[0].clock_out_utc && clock.isToday()) {
       return {
         error: "Already logged today",
         emptyField,
