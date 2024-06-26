@@ -108,8 +108,10 @@ export async function Attendance(
 
     const checkAttendance: any = await getRecentClock(isValidUser[0].id);
 
+    dayjs.extend(timezone);
+    dayjs.tz.setDefault(timezoneClient);
     dayjs.extend(isToday);
-    let clock = dayjs(checkAttendance[0].clock_in_utc);
+    let clock = dayjs(checkAttendance[0].date_created);
 
     if (checkAttendance[0].clock_out_utc) {
       if (clock.isToday()) {
