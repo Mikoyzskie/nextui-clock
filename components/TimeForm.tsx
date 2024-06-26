@@ -147,7 +147,7 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                     alt="Zanda Logo"
                     className="p-0"
                     src="/logo-dark.png"
-                    width={100}
+                    width={120}
                 />
 
                 <Time time={dateTime.getTime()} />
