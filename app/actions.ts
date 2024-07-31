@@ -110,7 +110,7 @@ export async function Attendance(
     const checkAttendance: any = await getRecentClock(isValidUser[0].id);
 
     const parsedTime = moment(checkAttendance[0].clock_in_utc);
-    const timeAfter12Hours = parsedTime.add(12, "hours");
+    const timeAfter12Hours = parsedTime.add(14, "hours");
     const has12HoursPassed = moment(localTime).isAfter(timeAfter12Hours);
 
     if (checkAttendance[0].clock_out_utc) {
