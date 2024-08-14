@@ -10,7 +10,7 @@ import {
 } from "@directus/sdk";
 
 //should be in env
-const apiClient = "YQRwVAFUn-LlC_IOPoOkpVLeH75QBlyI"
+const apiClient = process.env.DIRECTUS_API_KEY
   ? createDirectus("https://data.zanda.info")
       .with(staticToken("YQRwVAFUn-LlC_IOPoOkpVLeH75QBlyI"))
       .with(rest({ credentials: "include" }))
