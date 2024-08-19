@@ -1,6 +1,20 @@
 "use client";
-import { FormEvent, useMemo, useState, useRef } from "react";
+
+import {
+  FormEvent,
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 import { io } from "socket.io-client";
+import { Button } from "@nextui-org/button";
+import { button as buttonStyles } from "@nextui-org/theme";
+import { Card, CardHeader, CardBody } from "@nextui-org/card";
+import { Image } from "@nextui-org/image";
+import { Input } from "@nextui-org/input";
+import { CircleCheck, CircleX, Eye, EyeOff } from "lucide-react";
 
 import { IEmployees } from "@/app/types";
 
@@ -10,13 +24,28 @@ export default function Page() {
   const [userAvailable, setUserAvailable] = useState<IEmployees | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
+  const [isVisible, setIsVisible] = useState(false);
+
+  const dateTime = new Date();
+  // const [time, setTime] = useState(new Date(dateTime.getTime()));
+
+  // useEffect(() => {
+  //   const timer = setInterval(() => {
+  //     setTime(new Date());
+  //   }, 1000);
+
+  //   return () => clearInterval(timer);
+  // }, []);
+
+  let userExists = employees?.find(
+    (employee) => employee.Employee_Username === username,
+  );
+
+  const toggleVisibility = useCallback(() => setIsVisible((prev) => !prev), []);
+
   const formRef = useRef<HTMLFormElement>(null);
 
   const socket = useMemo(() => io("http://localhost:4000"), []);
-
-  socket.on("connect", () => {
-    // console.log("connected");
-  });
 
   socket.on("EMPLOYEE_LIST", (data: string) => {
     const employees = JSON.parse(data);
@@ -36,14 +65,10 @@ export default function Page() {
     formRef.current?.reset();
   });
 
-  const userExists = employees?.find(
-    (employee) => employee.Employee_Username === username,
-  );
-
   const handleFormSubmit = (event: FormEvent<HTMLFormElement>): void => {
-    setIsLoading(true);
-
     event.preventDefault();
+
+    setIsLoading(true);
     const data = new FormData(event.currentTarget);
     const password = data.get("password");
 
@@ -53,18 +78,85 @@ export default function Page() {
   };
 
   return (
-    <form ref={formRef} onSubmit={handleFormSubmit}>
-      <input
-        required
-        name="username"
-        type="text"
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <input required name="password" type="password" />
-      {userExists && `${userExists.Clock_Status}`}
-      <button disabled={isLoading} type="submit">
-        {isLoading ? "Loading ..." : "Submit"}
-      </button>
-    </form>
+    <Card className="flex flex-col items-center justify-center gap-4 p-10">
+      <CardHeader className="flex flex-col gap-3 w-full max-w-sm text-center items-center justify-center p-0 relative">
+        <Image
+          alt="Zanda Logo"
+          className="p-0"
+          src="/logo-dark.png"
+          width={120}
+        />
+        {/* <div className="text-xs font-bold text-gray-500 tabular-nums">
+          {time.toDateString()} {time.toLocaleTimeString()}
+        </div> */}
+      </CardHeader>
+      <p className="text-xs font-bold">Test Text</p>
+      <form
+        ref={formRef}
+        className="flex flex-col items-center justify-center gap-3"
+        onSubmit={handleFormSubmit}
+      >
+        <Input
+          required
+          classNames={{
+            inputWrapper: "bg-default-100",
+            input: "text-sm",
+          }}
+          endContent={
+            userExists ? (
+              userExists.Clock_Status ? (
+                <CircleCheck className="text-base text-default-400 pointer-events-none flex-shrink-0" />
+              ) : (
+                <CircleX className="text-base text-default-400 pointer-events-none flex-shrink-0" />
+              )
+            ) : (
+              ""
+            )
+          }
+          id="username"
+          label="Username"
+          name="username"
+          size="sm"
+          type="text"
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <Input
+          isRequired
+          aria-label="Password Input"
+          autoComplete="on"
+          classNames={{
+            inputWrapper: "bg-default-100",
+            input: "text-sm",
+          }}
+          endContent={
+            <button type="button" onClick={toggleVisibility}>
+              {isVisible ? (
+                <EyeOff className="text-default-400 pointer-events-none" />
+              ) : (
+                <Eye className="text-default-400 pointer-events-none" />
+              )}
+            </button>
+          }
+          id="password"
+          label="Password"
+          name="password"
+          size="sm"
+          type={isVisible ? "text" : "password"}
+        />
+        <Button
+          className={buttonStyles({
+            color: "primary",
+            radius: "full",
+            variant: "shadow",
+            size: "md",
+            fullWidth: true,
+          })}
+          isDisabled={isLoading}
+          type="submit"
+        >
+          {isLoading ? "Submiting..." : "Time In/Time Out"}
+        </Button>
+      </form>
+    </Card>
   );
 }
