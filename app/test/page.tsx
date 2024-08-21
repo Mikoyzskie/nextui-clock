@@ -11,41 +11,40 @@ import {
 import { io } from "socket.io-client";
 import { Button } from "@nextui-org/button";
 import { button as buttonStyles } from "@nextui-org/theme";
-import { Card, CardHeader, CardBody } from "@nextui-org/card";
+import { Card, CardHeader } from "@nextui-org/card";
 import { Image } from "@nextui-org/image";
 import { Input } from "@nextui-org/input";
 import { CircleCheck, CircleX, Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 
 import { IEmployees } from "@/app/types";
+import clsx from "clsx";
 
 export default function Page() {
   const [employees, setEmployees] = useState<IEmployees[] | undefined>();
   const [username, setUsername] = useState("");
-  const [userAvailable, setUserAvailable] = useState<IEmployees | undefined>();
   const [isLoading, setIsLoading] = useState(false);
-
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const dateTime = new Date();
-  // const [time, setTime] = useState(new Date(dateTime.getTime()));
+  const formRef = useRef<HTMLFormElement>(null);
 
-  // useEffect(() => {
-  //   const timer = setInterval(() => {
-  //     setTime(new Date());
-  //   }, 1000);
-
-  //   return () => clearInterval(timer);
-  // }, []);
+  const socket = useMemo(() => io("http://localhost:4000"), []);
 
   let userExists = employees?.find(
     (employee) => employee.Employee_Username === username,
   );
 
+  useEffect(() => {
+    if (userExists) {
+      setIsSubmitDisabled(false);
+    } else {
+      setIsSubmitDisabled(true);
+    }
+  }, [userExists]);
+
   const toggleVisibility = useCallback(() => setIsVisible((prev) => !prev), []);
-
-  const formRef = useRef<HTMLFormElement>(null);
-
-  const socket = useMemo(() => io("http://localhost:4000"), []);
 
   socket.on("EMPLOYEE_LIST", (data: string) => {
     const employees = JSON.parse(data);
@@ -53,21 +52,25 @@ export default function Page() {
     setEmployees(employees);
   });
 
-  socket.on("USER_AVAILABLE", (data: string) => {
-    setUserAvailable(JSON.parse(data));
-  });
-
-  socket.on("LOADING_DONE", (data) => {
-    setIsLoading(data);
+  socket.on("LOADING_DONE", () => {
+    setIsLoading(false);
   });
 
   socket.on("USER_LOGGED", () => {
     formRef.current?.reset();
+    setIsSubmitDisabled(true);
+    setErrorMessage("");
+  });
+
+  socket.on("ERROR", (data: string) => {
+    setErrorMessage(data);
+    setIsSubmitDisabled(false);
   });
 
   const handleFormSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
 
+    setIsSubmitDisabled(true);
     setIsLoading(true);
     const data = new FormData(event.currentTarget);
     const password = data.get("password");
@@ -97,7 +100,7 @@ export default function Page() {
         onSubmit={handleFormSubmit}
       >
         <Input
-          required
+          isRequired
           classNames={{
             inputWrapper: "bg-default-100",
             input: "text-sm",
@@ -143,6 +146,10 @@ export default function Page() {
           size="sm"
           type={isVisible ? "text" : "password"}
         />
+        <p className={clsx("text-xs text-red-500")}>{errorMessage}</p>
+        <Link className="text-xs font-bold underline" href={"/reset"}>
+          Reset Password
+        </Link>
         <Button
           className={buttonStyles({
             color: "primary",
@@ -151,7 +158,7 @@ export default function Page() {
             size: "md",
             fullWidth: true,
           })}
-          isDisabled={isLoading}
+          isDisabled={isSubmitDisabled}
           type="submit"
         >
           {isLoading ? "Submiting..." : "Time In/Time Out"}
