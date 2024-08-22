@@ -16,9 +16,12 @@ import { Image } from "@nextui-org/image";
 import { Input } from "@nextui-org/input";
 import { CircleCheck, CircleX, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import clsx from "clsx";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 
 import { IEmployees } from "@/app/types";
-import clsx from "clsx";
 
 export default function Page() {
   const [employees, setEmployees] = useState<IEmployees[] | undefined>();
@@ -27,6 +30,7 @@ export default function Page() {
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [ipAddress, setIpAddress] = useState("");
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -43,6 +47,39 @@ export default function Page() {
       setIsSubmitDisabled(true);
     }
   }, [userExists]);
+
+  // Fetch IP address once when component mounts
+  useEffect(() => {
+    const fetchIpAddress = async () => {
+      try {
+        const response = await fetch("https://api.ipify.org/?format=json");
+
+        if (response.ok) {
+          const data = await response.json();
+
+          setIpAddress(data.ip);
+        } else {
+          throw new Error("Failed to fetch IP address");
+        }
+      } catch (error) {
+        throw new Error(`Error fetching IP address: ${error}`);
+      }
+    };
+
+    fetchIpAddress();
+  }, []);
+
+  dayjs.extend(utc);
+  dayjs.extend(timezone);
+
+  let now = dayjs().format();
+
+  const dateTime = new Date();
+  const timezoneOffset = dateTime
+    .toLocaleDateString(undefined, { day: "2-digit", timeZoneName: "short" })
+    .substring(4);
+
+  let clientTimezone = dayjs.tz.guess();
 
   const toggleVisibility = useCallback(() => setIsVisible((prev) => !prev), []);
 
@@ -70,14 +107,27 @@ export default function Page() {
   const handleFormSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
 
-    setIsSubmitDisabled(true);
-    setIsLoading(true);
+    // setIsSubmitDisabled(true);
+    // setIsLoading(true);
     const data = new FormData(event.currentTarget);
-    const password = data.get("password");
 
     if (userExists) {
-      socket.emit("USER_CHECK", userExists.id, password);
+      const submitArgs = {
+        id: userExists.id,
+        password: data.get("password"),
+        ipaddress: data.get("ipaddress"),
+        localTime: data.get("localTime"),
+        timezoneOffset: data.get("timezoneOffset"),
+        timezoneClient: data.get("timezoneClient"),
+      };
+
+      console.log(JSON.stringify(submitArgs));
     }
+    // const password = data.get("password");
+
+    // if (userExists) {
+    //   socket.emit("USER_CHECK", userExists.id, password);
+    // }
   };
 
   return (
@@ -145,6 +195,30 @@ export default function Page() {
           name="password"
           size="sm"
           type={isVisible ? "text" : "password"}
+        />
+        <input
+          defaultValue={ipAddress}
+          id="ipaddress"
+          name="ipaddress"
+          type="hidden"
+        />
+        <input
+          defaultValue={now}
+          id="localTime"
+          name="localTime"
+          type="hidden"
+        />
+        <input
+          defaultValue={timezoneOffset}
+          id="timezoneOffset"
+          name="timezoneOffset"
+          type="hidden"
+        />
+        <input
+          defaultValue={clientTimezone}
+          id="timezoneClient"
+          name="timezoneClient"
+          type="hidden"
         />
         <p className={clsx("text-xs text-red-500")}>{errorMessage}</p>
         <Link className="text-xs font-bold underline" href={"/reset"}>
