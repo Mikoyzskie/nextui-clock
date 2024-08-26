@@ -21,7 +21,7 @@ import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
-import { IEmployees } from "@/app/types";
+import { IEmployees, UserLogDto } from "@/app/types";
 
 export default function Page() {
   const [employees, setEmployees] = useState<IEmployees[] | undefined>();
@@ -89,29 +89,27 @@ export default function Page() {
     setEmployees(employees);
   });
 
-  socket.on("LOADING_DONE", () => {
-    setIsLoading(false);
-  });
-
-  socket.on("USER_LOGGED", () => {
+  socket.on("USER_LOGGED", (data) => {
     formRef.current?.reset();
     setIsSubmitDisabled(true);
-    setErrorMessage("");
+    setErrorMessage(data);
+    setIsLoading(false);
   });
 
   socket.on("ERROR", (data: string) => {
     setErrorMessage(data);
-    setIsSubmitDisabled(false);
+    setIsSubmitDisabled(true);
+    setIsLoading(false);
   });
 
   const handleFormSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
 
-    // setIsSubmitDisabled(true);
-    // setIsLoading(true);
+    setIsSubmitDisabled(true);
+    setIsLoading(true);
     const data = new FormData(event.currentTarget);
 
-    if (userExists) {
+    if (userExists && data) {
       const submitArgs = {
         id: userExists.id,
         password: data.get("password"),
@@ -121,13 +119,8 @@ export default function Page() {
         timezoneClient: data.get("timezoneClient"),
       };
 
-      console.log(JSON.stringify(submitArgs));
+      socket.emit("USER_CHECK", JSON.stringify(submitArgs));
     }
-    // const password = data.get("password");
-
-    // if (userExists) {
-    //   socket.emit("USER_CHECK", userExists.id, password);
-    // }
   };
 
   return (
@@ -143,7 +136,6 @@ export default function Page() {
           {time.toDateString()} {time.toLocaleTimeString()}
         </div> */}
       </CardHeader>
-      <p className="text-xs font-bold">Test Text</p>
       <form
         ref={formRef}
         className="flex flex-col items-center justify-center gap-3"
@@ -221,9 +213,19 @@ export default function Page() {
           type="hidden"
         />
         <p className={clsx("text-xs text-red-500")}>{errorMessage}</p>
-        <Link className="text-xs font-bold underline" href={"/reset"}>
-          Reset Password
-        </Link>
+        <div className="flex justify-between w-full">
+          <Link className="text-xs font-bold underline" href={"/reset"}>
+            Reset Password
+          </Link>
+          <button
+            className="text-xs "
+            onClick={() => {
+              formRef.current?.reset();
+            }}
+          >
+            Reset Form
+          </button>
+        </div>
         <Button
           className={buttonStyles({
             color: "primary",
