@@ -34,7 +34,7 @@ export default function Page() {
 
   const formRef = useRef<HTMLFormElement>(null);
 
-  const socket = useMemo(() => io("http://localhost:4000"), []);
+  const socket = useMemo(() => io("http://localhost:3001"), []);
 
   let userExists = employees?.find(
     (employee) => employee.Employee_Username === username,
@@ -83,24 +83,26 @@ export default function Page() {
 
   const toggleVisibility = useCallback(() => setIsVisible((prev) => !prev), []);
 
-  socket.on("EMPLOYEE_LIST", (data: string) => {
-    const employees = JSON.parse(data);
+  useEffect(() => {
+    socket.on("EMPLOYEE_LIST", (data: string) => {
+      const employees = JSON.parse(data);
 
-    setEmployees(employees);
-  });
+      setEmployees(employees);
+    });
 
-  socket.on("USER_LOGGED", (data) => {
-    formRef.current?.reset();
-    setIsSubmitDisabled(true);
-    setErrorMessage(data);
-    setIsLoading(false);
-  });
+    socket.on("USER_LOGGED", (data) => {
+      formRef.current?.reset();
+      setIsSubmitDisabled(true);
+      setErrorMessage(data);
+      setIsLoading(false);
+    });
 
-  socket.on("ERROR", (data: string) => {
-    setErrorMessage(data);
-    setIsSubmitDisabled(true);
-    setIsLoading(false);
-  });
+    socket.on("ERROR", (data: string) => {
+      setErrorMessage(data);
+      setIsSubmitDisabled(true);
+      setIsLoading(false);
+    });
+  }, []);
 
   const handleFormSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
