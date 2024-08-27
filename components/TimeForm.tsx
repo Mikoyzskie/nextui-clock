@@ -11,14 +11,15 @@ import { Button } from "@nextui-org/button";
 import dynamic from "next/dynamic";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import timezone from 'dayjs/plugin/timezone'
-import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 import dayjs from "dayjs";
 import clsx from "clsx";
 
 import { siteConfig } from "@/config/site";
 import { IEmployees, IInitial } from "@/app/types";
 import { Attendance } from "@/app/actions";
+
 
 const Time = dynamic(() => import("../components/time"), {
     ssr: false,
@@ -71,6 +72,20 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
     const [isLogged, setIsLogged] = useState<boolean | undefined>();
     const [isVisible, setIsVisible] = useState(false);
     const [ipAddress, setIpAddress] = useState("");
+
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+
+            window.location.reload()
+
+        }, 10 * 60 * 60 * 1000);
+
+        return () => clearInterval(intervalId);
+
+    }, []);
+
+
+
     const formRef = useRef<HTMLFormElement>(null);
 
     const dateTime = new Date();
