@@ -270,6 +270,9 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
                     </div>
                 </CardBody>
                 <SubmitButton status={isLogged} />
+                <Link className="text-sm font-bold mt-2 hover:underline" href={"https://days-off-smoky.vercel.app/"}>
+                    Day Off Form
+                </Link>
             </form>
         </Card>
     );
