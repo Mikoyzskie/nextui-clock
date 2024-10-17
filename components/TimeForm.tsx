@@ -74,14 +74,43 @@ export default function TimeForm({ data }: { data: IEmployees[] }) {
     const [ipAddress, setIpAddress] = useState("");
 
     useEffect(() => {
+        const checkAndReloadAt4AM = () => {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+
+            // Check if it's exactly 4 AM
+            if (currentHour === 4 && currentMinute === 0) {
+                window.location.reload();
+            }
+        };
+
         const intervalId = setInterval(() => {
+            checkAndReloadAt4AM();
+            window.location.reload();
+        }, 10 * 60 * 60 * 1000); // Reload every 10 hours
 
-            window.location.reload()
+        // Calculate the time until 4 AM
+        const now = new Date();
+        const timeUntil4AM = new Date();
 
-        }, 10 * 60 * 60 * 1000);
+        timeUntil4AM.setHours(4, 0, 0, 0); // Set time to 4:00 AM
 
-        return () => clearInterval(intervalId);
+        if (now > timeUntil4AM) {
+            // If it's already past 4 AM, set the time for the next day
+            timeUntil4AM.setDate(timeUntil4AM.getDate() + 1);
+        }
 
+        const timeDifference = timeUntil4AM.getTime() - now.getTime();
+
+        const timeoutId = setTimeout(() => {
+            window.location.reload();
+        }, timeDifference); // Reload at 4 AM
+
+        return () => {
+            clearInterval(intervalId);
+            clearTimeout(timeoutId);
+        };
     }, []);
 
 
